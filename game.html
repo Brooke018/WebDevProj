@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Taylor Swift Lyric Guessing Game</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Georgia', serif;
+      background: linear-gradient(to right, #f4b0c5, #d7a4c4);
+      color: #4f4a4a;
+      text-align: center;
+      padding: 50px;
+      background-image: url('https://images.unsplash.com/photo-1566295024-1a89cf0103b5');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 40px;
+      border-radius: 25px;
+      display: inline-block;
+      max-width: 700px;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    h1 {
+      font-family: 'Cedarville Cursive', cursive;
+      color: #ff7f50;
+      font-size: 2.6em;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 8px rgba(255, 255, 255, 0.3);
+    }
+
+    .lyric {
+      font-style: italic;
+      font-size: 1.7em;
+      margin: 30px 0;
+      letter-spacing: 1px;
+      transition: opacity 0.6s ease-out;
+      line-height: 1.5;
+      font-family: 'Playfair Display', serif;
+    }
+
+    input, button {
+      padding: 12px;
+      font-size: 1.2em;
+      border-radius: 8px;
+      border: none;
+      margin: 10px 5px;
+      width: 80%;
+      max-width: 400px;
+    }
+
+    input {
+      background: #f7d6e0;
+      color: #4f4a4a;
+      font-size: 1.1em;
+      border: 1px solid #ff7f50;
+    }
+
+    button {
+      background-color: #ff7f50;
+      color: white;
+      font-family: 'Cedarville Cursive', cursive;
+      font-size: 1.3em;
+      cursor: pointer;
+      text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.3);
+    }
+
+    .feedback {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 1.3em;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .streak, .level, .timer {
+      margin-top: 10px;
+      color: #c0a98f;
+      font-style: italic;
+      font-size: 1.1em;
+      font-family: 'Georgia', serif;
+    }
+
+    .celebration {
+      color: #ff7f50;
+      font-size: 2em;
+      font-family: 'Cedarville Cursive', cursive;
+      font-weight: bold;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .finalMessage {
+      color: #ff7f50;
+      font-size: 2em;
+      font-family: 'Cedarville Cursive', cursive;
+      font-weight: bold;
+      margin-top: 30px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+
+  <link href="https://fonts.googleapis.com/css2?family=Cedarville+Cursive&family=Playfair+Display&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="container">
+    <h1>🎶 Taylor Swift Lyric Guessing Game 🎤</h1>
+    <div class="lyric" id="lyric">Loading lyric...</div>
+
+    <input type="text" id="guess" placeholder="Guess the song title..." />
+    <br>
+    <button onclick="checkGuess()">Submit</button>
+    <button onclick="newLyric()">Skip</button>
+
+    <div class="feedback" id="feedback"></div>
+    <div class="timer" id="timer">⏳</div>
+    <div class="streak" id="streak">Current streak: 0</div>
+    <div class="level" id="level">Level: 1</div>
+    <div id="celebrationMessage"></div>
+
+    <!-- Final Swiftie Message -->
+    <div id="finalMessage" class="finalMessage"></div>
+
+    <!-- Answer Bank -->
+    <h3 style="margin-top: 30px;">💡 Answer Bank (Song Titles)</h3>
+    <div id="answerBank" style="max-height: 150px; overflow-y: auto; padding: 10px; border: 1px dashed #ff7f50; background: #fff8f9; margin-top: 10px; border-radius: 10px; font-size: 0.95em; line-height: 1.6;"></div>
+  </div>
+
+  <!-- Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+  <script>
+    const lyrics = [
+      { lyric: "I once believed love would be burning red", song: "Daylight" },
+      { lyric: "This night is sparkling, don't you let it go", song: "Enchanted" },
+      { lyric: "I miss you tan skin, your sweet smile", song: "Back to December" },
+      { lyric: "She's cheer captain, and I'm on the bleachers", song: "You Belong With Me" },
+      { lyric: "My castle crumbled overnight, I brough a knife to a gunfight", song: "Call It What You Want" },
+      { lyric: "Call me up again just to break me like a promise", song: "All Too Well" },
+      { lyric: "Cause darling I’m a nightmare dressed like a daydream", song: "Blank Space" },
+      { lyric: "I'm only seventeen, i don't know anythin' But I know I miss you", song: "Betty" },
+      { lyric: "But on a Wednesday, In a Cafe, I watched it...", song: "Begin Again" },
+      { lyric: "He said the way my blue eyes shined put those Georgia stars to shame that night", song: "Tim McGraw" },
+      { lyric: "I wake in the night, I pace like a ghost", song: "The Archer" },
+      { lyric: "Salute to me, I'm your American Queen", song: "King of My Heart" },
+      { lyric: "You deserve prision, but you won't get a time", song: "The Smallest Man Who Ever Lived" },
+      { lyric: "But people like me are gone forever when you say goodbye", song: "All You Had to Do Was Stay" },
+      { lyric: "There's glitter on the floor after the party", song: "New Year's Day" },
+      { lyric: "I had the time of my life fighting dragons with you", song: "Long Live" },
+      { lyric: "It's me, hi, I'm the problem it's me", song: "Anti-Hero" },
+      { lyric: "Romeo take me somewhere we can be alone", song: "Love Story" },
+      { lyric: "The old Taylor can't come to the phone right now, why, oh cause she's dead", song: "Look What You Made Me Do" },
+      { lyric: "Never be so kind, you forget to be clever", song: "Marjorie" },
+      { lyric: "The burgundy on my T-shirt when you splashed your wine into me", song: "Maroon" },
+      { lyric: "It feels like a perfect night, to dress up like hipsters", song: "22" },
+      { lyric: "I was tame I was gentle till the circus life made me mean", song: "Who's Afraid Of Little Old Me" },
+      { lyric: "We can leave the Christmas lights up till January", song: "Lover" },
+      { lyric: "Losing him was blue like I've never known", song: "Red" },
+      { lyric: "Best believe I'm still bejeweled", song: "Bejeweled" },
+      { lyric: "You're on your own, kid, you always have been", song: "You're On Your Own Kid" },
+      { lyric: "Don't blame me, love made me crazy", song: "Don't Blame Me" },
+      { lyric: "Midnight, you come and pick me up", song: "Style" },
+      { lyric: "This ain't for the best, my reputation's never been worse", song: "Delicate" },
+      { lyric: "Remember whe you hit the breaks too soon? 20 stitches in a hospital room", song: "Out of the Woods" },
+      { lyric: "I don't want to keep secrets just to keep you", song: "Cruel Summer" },
+      { lyric: "And I don't know why, but with you I'd dance in a storm in my best dress", song: "Fearless" },
+      { lyric: "Our song is the slamming screen door, sneaking out late, tapping on your window", song: "Our Song" },
+      { lyric: "I don't like your little games, don't like your tilted stage", song: "Look What You Made Me Do" },
+      { lyric: "Maybe we got lost in translation, maybe I asked for too much", song: "All Too Well" },
+      { lyric: "I used to think one day we'd tell the story of us", song: "The Story of Us" },
+      { lyric: "If you could see that I'm the one who understands you", song: "You Belong With Me" },
+      { lyric: "And the players gonna play, play, play, play, play", song: "Shake It Off" },
+      { lyric: "My baby's fit like a daydream, walking with his head down", song: "Call It What You Want" },
+      { lyric: "The best people in life are free", song: "New Romantics" },
+      { lyric: "Say you'll remember me, standing in a nice dress, staring at the sunset, babe", song: "Wildest Dreams" },
+      { lyric: "Isn't it just so pretty to think all along there was some invisible string", song: "Invisible String" },
+    ];
+
+    let currentLyric = {};
+    let streak = 0;
+    let level = 1;
+    let timer;
+    const timeLimit = 15;
+    let remainingLyrics = [];
+
+    function shuffleLyrics() {
+      remainingLyrics = [...lyrics];
+      for (let i = remainingLyrics.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [remainingLyrics[i], remainingLyrics[j]] = [remainingLyrics[j], remainingLyrics[i]];
+      }
+    }
+
+    function newLyric() {
+      clearTimeout(timer);
+
+      if (remainingLyrics.length === 0) {
+        shuffleLyrics(); // Reshuffle when all have been used
+      }
+
+      currentLyric = remainingLyrics.pop(); // Grab from the shuffled list
+
+      document.getElementById("lyric").style.opacity = 0;
+
+      setTimeout(() => {
+        document.getElementById("lyric").innerText = `"${currentLyric.lyric}"`;
+        document.getElementById("lyric").style.opacity = 1;
+        document.getElementById("feedback").innerText = "";
+        document.getElementById("guess").value = "";
+        document.getElementById("celebrationMessage").innerHTML = "";
+        document.getElementById("finalMessage").innerText = ""; // Reset final message
+        startTimer();
+      }, 300);
+    }
+
+    function startTimer() {
+      let timeLeft = timeLimit;
+      const timerDiv = document.getElementById("timer");
+
+      function countdown() {
+        if (timeLeft > 0) {
+          timerDiv.innerText = `⏳ ${timeLeft} seconds left...`;
+          timeLeft--;
+          timer = setTimeout(countdown, 1000);
+        } else {
+          timerDiv.innerText = "⏰ Time's up!";
+          document.getElementById("feedback").innerText = `Time’s up! It was "${currentLyric.song}".`;
+          streak = 0;
+          updateStats();
+          setTimeout(newLyric, 2000);
+        }
+      }
+
+      countdown();
+    }
+
+    function checkGuess() {
+      clearTimeout(timer);
+      const guess = document.getElementById("guess").value.trim().toLowerCase();
+      const correct = currentLyric.song.toLowerCase();
+      const feedback = document.getElementById("feedback");
+
+      if (guess === correct) {
+        streak++;
+        feedback.innerText = `✅ Yes! "${currentLyric.song}" it is!`;
+        feedback.style.color = "#ff7f50";
+        confetti({ particleCount: 120, spread: 70 });
+
+        if (streak % 5 === 0) {
+          level++;
+          feedback.innerHTML += `<br>🌟 Level up! You're now level ${level}.`;
+        }
+
+        if (streak === 13) {
+          document.getElementById("celebrationMessage").innerHTML = '<div class="celebration">🎉 You hit a streak of 13! Taylor would be proud! 🎉</div>';
+          document.getElementById("finalMessage").innerText = "🎉 Congratulations, you are a true Swiftie! 🎉";
+        }
+
+      } else if (correct.includes(guess) || guess.includes(correct)) {
+        feedback.innerText = `🧐 Close! The correct song is "${currentLyric.song}".`;
+        feedback.style.color = "#f6c177";
+        streak = 0;
+      } else {
+        feedback.innerText = `❌ Nope! It's "${currentLyric.song}".`;
+        feedback.style.color = "#ff6b6b";
+        streak = 0;
+      }
+
+      updateStats();
+      setTimeout(newLyric, 2000);
+    }
+
+    function updateStats() {
+      document.getElementById("streak").innerText = `Current streak: ${streak}`;
+      document.getElementById("level").innerText = `Level: ${level}`;
+    }
+
+    function populateAnswerBank() {
+      const allSongs = [...new Set(lyrics.map(item => item.song))].sort();
+      const bankDiv = document.getElementById("answerBank");
+      bankDiv.innerHTML = allSongs.map(title => `🎵 ${title}`).join("<br>");
+    }
+
+    window.onload = () => {
+      shuffleLyrics();
+      newLyric();
+      populateAnswerBank(); // show answer bank on load
+    };
+  </script>
+
+</body>
+</html>
+
+
+
+
